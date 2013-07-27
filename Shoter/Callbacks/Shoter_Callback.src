@@ -1,10 +1,10 @@
-
 var callbacks; // list of functions names
 var parameters; // list of lists of parameters to functions
 var current_time;  //list of number types that represent actual time from last callback
 var repeat_time;   //list of number types that represent time beetween callbacks
 var repeat_count; // list of numbers types that indicates how much callback was executed ( -1 indicates infinity time )
 var repeat_number; //list of numbers types that indicates maxmimum number of times that callback will be executed
+var fetch_params;  //list of bools that determines wheter script need to fetch params and executes callbacks for each param if needed
 var unique_id; //list of number that indicates unique id of callback. It will be used to remove callback
 
 var loop_start ;
@@ -19,7 +19,9 @@ current_time := [];
 repeat_time := [];
 repeat_count := [];
 repeat_number := [];
+fetch_params := [];
 unique_id := [];
+
 
 last_unique := 0;
 size := 0;
@@ -62,29 +64,54 @@ var _test;
 begin
         callbacks     := callbacks     ^ [n_callback];
         parameters    := parameters    ^ [n_parameters];
-        current_time  := current_time    ^ [0];
+        current_time  := current_time  ^ [0];
         repeat_time   := repeat_time   ^ [n_repeat_time];
         repeat_count  := repeat_count  ^ [0];
         repeat_number := repeat_number ^ [n_repeat_number];
+        fetch_params  := fetch_params  ^ [n_repeat_number];
         unique_id     := unique_id     ^ [last_unique];
+        fetch_params  := fetch_params  ^ [False];
         size := size + 1;
 
         Result := last_unique;
         last_unique := last_unique + 1;
 end;
 
+//Function return unique_id which with we can delete it from the callbacks list
+export function OWL_Shoter_Callback_Add_Fetch( n_callback, n_parameters, n_repeat_time, n_repeat_number );
+var _test;
+begin
+         callbacks     := callbacks     ^ [n_callback];
+        parameters    := parameters    ^ [n_parameters];
+        current_time  := current_time  ^ [0];
+        repeat_time   := repeat_time   ^ [n_repeat_time];
+        repeat_count  := repeat_count  ^ [0];
+        repeat_number := repeat_number ^ [n_repeat_number];
+        fetch_params  := fetch_params  ^ [n_repeat_number];
+        unique_id     := unique_id     ^ [last_unique];
+        fetch_params  := fetch_params  ^ [True];
+        size := size + 1;
+
+        Result := last_unique;
+        last_unique := last_unique + 1;
+
+
+end;
+
 export function OWL_Shoter_Remove_Callback( n_callback_unique_id);
 var _position;
 begin
         
-        _position := find_position( n_callback_unique_id );
-        callbacks := Delete(callbacks , _position );
-        parameters :=Delete(parameters , _position );
-        current_time :=Delete(current_time , _position );
-        repeat_time :=Delete(repeat_time , _position );
-        repeat_count :=Delete(repeat_count , _position );
-        repeat_number :=Delete(repeat_number , _position );
-        unique_id :=Delete(unique_id , _position );
+        _position     := find_position( n_callback_unique_id );
+        callbacks     := Delete(callbacks     , _position );
+        parameters    := Delete(parameters    , _position );
+        current_time  := Delete(current_time  , _position );
+        repeat_time   := Delete(repeat_time   , _position );
+        repeat_count  := Delete(repeat_count  , _position );
+        repeat_number := Delete(repeat_number , _position );
+        fetch_params  := Delete(fetch_params  , _position );
+        unique_id     := Delete(unique_id     , _position );
+
 
 size := size - 1;
 
@@ -106,9 +133,50 @@ begin
 end;
 
 function execute( position );
+var _number_of_params;
+var _results;
+var _i;
 begin
-        OWL_Shoter_Functions_Execute( callbacks[position], parameters[position] );
+        if( fetch_params[ position ] = false ) then
+             OWL_Shoter_Functions_Execute( callbacks[position], parameters[position] )
+        else
+            begin
+                _results := fetch_params_list( parameters[ position ]);
+                OWL_Shoter_Functions_Execute( callbacks[position], _results );
+            end;
+
+
+                 
 end;
+
+function fetch_params_list( _params );
+var _current;
+var _function;
+var _doFetch;
+var _fetchParams;
+var _number_of_params;
+var _result;
+var _i;
+begin
+       _result := [];
+      _number_of_params := _params[1];
+       for _i := 2 to (_number_of_params + 1) do
+           begin
+               _current := _params[_i];
+               _doFetch := _current[1];
+               if(_doFetch = True ) then
+               begin
+                    _function := _current[2];
+                    _fetchParams := _current[3];
+
+                    _result := _result ^ OWL_Shoter_Function_Process_Param( [_function, _fetchParams] );
+               end
+               else
+                   _result := _result ^ _current[2];
+           end;
+    Result := _result;
+end;
+
 
 
 //vars will be filles with data

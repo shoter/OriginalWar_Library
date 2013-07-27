@@ -1,0 +1,28 @@
+
+
+Export function OWL_Shoter_Functions_Execute( {string} function_name, parameters );
+begin
+     case function_name of
+          'pojaw_skrzynke' :
+                        begin Result := pojaw_skrzynke( parameters ); end;
+                  'pojaw_sojusznika' :
+                        begin Result := pojaw_sojusznika( parameters ); end;
+          'rand' :
+          begin Result := test_rand( parameters ); end;
+     end;
+end;
+
+Export function OWL_Shoter_Function_Process_Param( _array );
+var _func, _params;
+begin
+        _func := _array[1];
+        _params := _array[2];
+        
+        Result := OWL_Shoter_Functions_Execute(_func , _params);
+end;
+
+
+function test_rand( _params );
+begin
+Result := Rand(_params[1],_params[2]);
+end;

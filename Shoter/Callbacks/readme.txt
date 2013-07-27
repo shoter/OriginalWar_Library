@@ -6,7 +6,7 @@ Shoter_Functions
 
 How to use :
 1. Init callback library by OWL_Shoter_Callback_init;
-2. add your own function to Shoter_Functions in library/shoter folder
+2. add your own function to Shoter_Functions in library/shoter/Functions folder
 3. Write your own function 
 4. Add your callback in code by OWL_Shoter_Callback_Add( Function_String_Name , Function_Parameters, Function_Frequency, Function_number_of_repeats );
 
