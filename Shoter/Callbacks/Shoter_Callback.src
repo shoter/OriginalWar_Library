@@ -1,0 +1,125 @@
+
+var callbacks; // list of functions names
+var parameters; // list of lists of parameters to functions
+var current_time;  //list of number types that represent actual time from last callback
+var repeat_time;   //list of number types that represent time beetween callbacks
+var repeat_count; // list of numbers types that indicates how much callback was executed ( -1 indicates infinity time )
+var repeat_number; //list of numbers types that indicates maxmimum number of times that callback will be executed
+var unique_id; //list of number that indicates unique id of callback. It will be used to remove callback
+
+var loop_start ;
+
+var last_unique;
+var size;
+export function OWL_Shoter_Callback_init;
+begin
+callbacks := [];
+parameters := [];
+current_time := [];
+repeat_time := [];
+repeat_count := [];
+repeat_number := [];
+unique_id := [];
+
+last_unique := 0;
+size := 0;
+
+loop_start = True;
+
+end;
+
+
+Every 0$01 trigger loop_start do
+var _i, _nextUniq;
+begin
+_i := 1;
+       while _i <= size do
+                begin
+
+                                fillVars( _i );
+                                current_time := Replace( current_time, _i, _current_time + 1 );
+                                        if( current_time[_i] >= repeat_time[_i] ) then
+                                        begin
+                                                current_time := Replace( current_time, _i, 0);
+                                                repeat_count := Replace( repeat_count, _i, _repeat_count + 1 );
+                                                execute(_i);
+                                                if( repeat_count[_i] <> -1 AND repeat_count [_i] >= repeat_number[_i] ) then
+                                                begin
+                                                        OWL_Shoter_Remove_Callback( unique_id[_i] );
+                                                       _i := _i - 1;
+                                                end;                                                
+                                                    
+                                        end;
+                                        _i := _i + 1;
+                end;
+        enable;
+end;
+
+
+//Function return unique_id which with we can delete it from the callbacks list
+export function OWL_Shoter_Callback_Add( n_callback, n_parameters, n_repeat_time, n_repeat_number );
+var _test;
+begin
+        callbacks     := callbacks     ^ [n_callback];
+        parameters    := parameters    ^ [n_parameters];
+        current_time  := current_time    ^ [0];
+        repeat_time   := repeat_time   ^ [n_repeat_time];
+        repeat_count  := repeat_count  ^ [0];
+        repeat_number := repeat_number ^ [n_repeat_number];
+        unique_id     := unique_id     ^ [last_unique];
+        size := size + 1;
+
+        Result := last_unique;
+        last_unique := last_unique + 1;
+end;
+
+export function OWL_Shoter_Remove_Callback( n_callback_unique_id);
+var _position;
+begin
+        
+        _position := find_position( n_callback_unique_id );
+        callbacks := Delete(callbacks , _position );
+        parameters :=Delete(parameters , _position );
+        current_time :=Delete(current_time , _position );
+        repeat_time :=Delete(repeat_time , _position );
+        repeat_count :=Delete(repeat_count , _position );
+        repeat_number :=Delete(repeat_number , _position );
+        unique_id :=Delete(unique_id , _position );
+
+size := size - 1;
+
+end;
+
+function find_position ( n_callback_unique_id );
+var _i;
+begin
+
+        for _i = 1 to size do
+        begin
+                if( unique_id[_i] = n_callback_unique_id ) then
+                begin
+                Result := _i;
+                _i := size;
+                end;
+                
+        end;
+end;
+
+function execute( position );
+begin
+        OWL_Shoter_Functions_Execute( callbacks[position], parameters[position] );
+end;
+
+
+//vars will be filles with data
+       var _callback, _parameters, _current_time, _repeat_time, _repeat_count, _repeat_number, _unique_id;
+function fillVars( position );
+begin
+        _callback      = callbacks    [ position ];
+        _parameters    = parameters   [ position ];
+        _current_time  = current_time [ position ];
+        _repeat_time   = repeat_time  [ position ];
+        _repeat_count  = repeat_count [ position ];
+        _repeat_number = repeat_number[ position ];
+        _unique_id     = unique_id    [ position ];
+end;
