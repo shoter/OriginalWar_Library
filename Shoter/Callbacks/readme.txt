@@ -1,5 +1,5 @@
 Author : shoter
-Version : 1.0
+Version : 1.1
 
 Uses :
 Shoter_Functions
