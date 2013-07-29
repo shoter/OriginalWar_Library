@@ -1,0 +1,127 @@
+var Shoter_Display_String; //list of strings
+var Shoter_Display_Params; // list of list of params
+var unique_id;
+var current_time;
+var time; //list of integers
+
+var loop_start;
+var size;
+var last_unique;
+
+export function Shoter_Display_Init;
+begin
+Shoter_Display_String := [];
+Shoter_Display_Params := [];
+unique_id := [];
+time := [];
+current_time := [];
+
+size := 0;
+last_unique := 0;
+loop_start := True;
+end;
+
+Export function Shoter_Display_Add( str, params, newtime, overwrite );
+var _found, _position;
+begin
+_found := False;
+_position := find_string( str );
+if( overwrite = True AND _position <> -1) then
+begin
+     Shoter_Display_Params := Replace(Shoter_Display_Params, _position, params);
+     current_time := Replace(current_time, _position, 0);
+     time := Replace(time, _position, newtime);
+             Result := unique_id[_position];
+       _found := True;
+end;
+
+if( overwrite = False OR _found = False) then
+begin
+     Shoter_Display_String := Shoter_Display_String ^ str;
+                      Shoter_Display_Params := Shoter_Display_Params ^ [params];
+                      time := time ^ newtime;
+     current_time := current_time ^ 0;
+             unique_id := unique_id ^ last_unique;
+
+          Result := last_unique;
+       size := size + 1;
+     last_unique := last_unique + 1;
+end;
+
+end;
+
+function find_string( str );
+var _i;
+begin
+
+Result := -1;
+     for _i:=1 to size do
+     begin
+         if(Shoter_Display_String[_i] = str) then
+           Result := _i;
+     end;
+end;
+
+
+Every 0$01 do
+var _i, _count;
+begin
+display_strings := [];
+_i := 1;
+_count := 0;
+     while _i <= size AND _count < 15 do
+     begin
+     
+           display_strings := display_strings ^ prepare_display_string( _i );
+      
+          current_time := Replace(current_time, _i, current_time[_i] + 1);
+          if( current_time[_i] >= time[_i] AND time[_i] <> -1) then
+          begin
+               delete_string(_i);
+               
+          end
+          else
+              _i := _i + 1;
+          _count := _count + 1;
+     end;
+     
+     enable;
+end;
+
+function prepare_display_string( position );
+var _param;
+begin
+Result := [ Shoter_Display_String[position] ];
+       for _param in Shoter_Display_Params[position] do
+       begin
+       Result := Result ^ _param;
+       end;
+end;
+
+function find_position( unique );
+var _i;
+begin
+     for _i:=1 to size do
+     begin
+          if(unique = unique_id[_i]) then
+             Result := _i;
+     end;
+end;
+
+export function Shoter_Display_Delete( unique );
+var _position;
+begin
+_position := find_position( unique );
+delete_string( _position );
+end;
+
+function delete_string( position );
+begin
+     Shoter_Display_String := Delete(Shoter_Display_String, position );
+     Shoter_Display_Params := Delete(Shoter_Display_Params, position );
+     unique_id := Delete(unique_id, position );
+     current_time := Delete(current_time, position );
+     time := Delete(time, position );
+     size := size - 1;
+end;
+
