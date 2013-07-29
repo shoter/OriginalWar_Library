@@ -22,24 +22,38 @@ loop_start := True;
 end;
 
 Export function Shoter_Display_Add( str, params, newtime, overwrite );
-var _found, _position;
+var _found, _position, _i, postac;
+begin
+ExclusiveOn;
+if( loop_start = True ) then
 begin
 _found := False;
-_position := find_string( str );
+_position := -1;
+    for _i:=1 to size do
+     begin
+         if(Shoter_Display_String[_i] = str) then
+         begin
+           _position := _i;
+           _found := True;
+          end;
+     end;
+
+
 if( overwrite = True AND _position <> -1) then
 begin
      Shoter_Display_Params := Replace(Shoter_Display_Params, _position, params);
      current_time := Replace(current_time, _position, 0);
      time := Replace(time, _position, newtime);
-             Result := unique_id[_position];
-       _found := True;
-end;
+     Result := unique_id[_position];
 
-if( overwrite = False OR _found = False) then
+end
+else if (overwrite = False OR _found = False) then
 begin
+
+
      Shoter_Display_String := Shoter_Display_String ^ str;
-                      Shoter_Display_Params := Shoter_Display_Params ^ [params];
-                      time := time ^ newtime;
+     Shoter_Display_Params := Shoter_Display_Params ^ [params];
+     time := time ^ newtime;
      current_time := current_time ^ 0;
              unique_id := unique_id ^ last_unique;
 
@@ -47,7 +61,8 @@ begin
        size := size + 1;
      last_unique := last_unique + 1;
 end;
-
+end;
+ExclusiveOff;
 end;
 
 function find_string( str );
@@ -63,16 +78,18 @@ Result := -1;
 end;
 
 
-Every 0$01 do
-var _i, _count;
+Every 0$01 trigger loop_start=True  do
+var _i, _count, _temp;
 begin
-display_strings := [];
+if(size > 0 ) then
+begin
+_temp := [];
 _i := 1;
 _count := 0;
      while _i <= size AND _count < 15 do
      begin
      
-           display_strings := display_strings ^ prepare_display_string( _i );
+           _temp := _temp ^ prepare_display_string( _i );
       
           current_time := Replace(current_time, _i, current_time[_i] + 1);
           if( current_time[_i] >= time[_i] AND time[_i] <> -1) then
@@ -84,7 +101,8 @@ _count := 0;
               _i := _i + 1;
           _count := _count + 1;
      end;
-     
+     display_strings := _temp;
+end;
      enable;
 end;
 
@@ -101,6 +119,7 @@ end;
 function find_position( unique );
 var _i;
 begin
+     Result := -1;
      for _i:=1 to size do
      begin
           if(unique = unique_id[_i]) then
@@ -111,11 +130,15 @@ end;
 export function Shoter_Display_Delete( unique );
 var _position;
 begin
+ExclusiveOn;
 _position := find_position( unique );
 delete_string( _position );
+ExclusiveOff;
 end;
 
 function delete_string( position );
+begin
+if(position <> -1 ) then
 begin
      Shoter_Display_String := Delete(Shoter_Display_String, position );
      Shoter_Display_Params := Delete(Shoter_Display_Params, position );
@@ -123,5 +146,6 @@ begin
      current_time := Delete(current_time, position );
      time := Delete(time, position );
      size := size - 1;
+end;
 end;
 
