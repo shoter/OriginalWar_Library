@@ -94,8 +94,6 @@ begin
 
         Result := last_unique;
         last_unique := last_unique + 1;
-
-
 end;
 
 export function OWL_Shoter_Remove_Callback( n_callback_unique_id);
@@ -114,7 +112,6 @@ begin
 
 
 size := size - 1;
-
 end;
 
 function find_position ( n_callback_unique_id );
